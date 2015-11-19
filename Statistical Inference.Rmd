@@ -1,0 +1,206 @@
+# Quiz 3
+
+## Question 1
+In a population of interest, a sample of 9 men yielded a sample average brain volume of 1,100cc and a standard deviation of 30cc. What is a 95% Students T confidence interval for the mean brain volume in this new population?
+
+* [1031, 1169]
+* [1092, 1108]
+* **[1077,1123]**
+* [1080, 1120]
+
+### Answer
+#### T Confidence intervals
+
+- Creating a confidence interval using the CLT takes the form $Est \pm ZQ \times SE_{Est}$
+- Gosset's $t$ distribution and $t$ confidence intervals are for small samples
+- They are of the form $Est \pm TQ \times SE_{Est}$
+- These are some of the handiest of intervals
+- If you want a rule between whether to use a $t$ interval
+or normal interval, just always use the $t$ interval
+
+#### Gosset's $t$ distribution
+
+- Invented by William Gosset (under the pseudonym "Student") in 1908
+- Has thicker tails than the normal
+- Is indexed by a degrees of freedom; gets more like a standard normal as df (degrees of freedom) gets larger
+- It assumes that the underlying data are iid 
+Gaussian with the result that
+$$
+\frac{\bar X - \mu}{S/\sqrt{n}}
+$$
+follows Gosset's $t$ distribution with $n-1$ degrees of freedom
+- (If we replaced $s$ by $\sigma$ the statistic would be exactly standard normal)
+- Interval is $\bar X \pm t_{n-1} S/\sqrt{n}$ where $t_{n-1}$
+is the relevant quantile
+
+```{r}
+n <- 9
+s <- 30
+x <- 1100
+
+# calculate quantile, 2.5% on each side
+p <- .95 # (0.975) is 95% with 2.5% on both sides of the range
+quantile <- p+(1-p)/2
+
+ci = x + c(-1, 1) * qt(quantile, df=n-1) * s / sqrt(n)
+ci
+```
+
+## Question 2
+A diet pill is given to 9 subjects over six weeks. The average difference in weight (follow up - baseline) is -2 pounds. What would the standard deviation of the difference in weight have to be for the upper endpoint of the 95% T confidence interval to touch 0?
+
+* **2.60**
+* 0.30
+* 1.50
+* 2.10
+
+### Answer
+Interval \(CI_{up} = \bar X + t_{n-1} S / \sqrt{n}\), where \(t_{n-1}\) is the relevant quantile
+
+Rewritten, to get standard deviation: \(S = \frac{CI_{up} - \bar X * \sqrt{n}}{t_{n-1}}\)
+
+```{r}
+n <- 9
+diff <- -2
+ci <- 0
+# calculate quantile, 2.5% on each side
+p <- .95 # (0.975) is 95% with 2.5% on both sides of the range
+quantile <- p+(1-p)/2
+
+s <- (ci - diff * sqrt(n)) / qt(quantile, df = n-1)
+round(s, 2)
+```
+
+## Question 3
+In an effort to improve running performance, 5 runners were either given a protein supplement or placebo. Then, after a suitable washout period, they were given the opposite treatment. Their mile times were recorded under both the treatment and placebo, yielding 10 measurements with 2 per subject. The researchers intend to use a T test and interval to investigate the treatment. Should they use a paired or independent group T test and interval?
+
+* Independent groups, since all subjects were seen under both systems
+* **A paired interval**
+* You could use either
+* It's necessary to use both
+
+### Answer
+Each test subject have results for each treatment.
+
+## Question 4
+In a study of emergency room waiting times, investigators consider a new and the standard triage systems. To test the systems, administrators selected 20 nights and randomly assigned the new triage system to be used on 10 nights and the standard system on the remaining 10 nights. They calculated the nightly median waiting time (MWT) to see a physician. The average MWT for the new system was 3 hours with a variance of 0.60 while the average MWT for the old system was 5 hours with a variance of 0.68. Consider the 95% confidence interval estimate for the differences of the mean MWT associated with the new system. Assume a constant variance. What is the interval? Subtract in this order (New System - Old System).
+
+* [1.29, 2.70]
+* [1.25, 2.75]
+* [-2,70, -1.29]
+* **[-2.75, -1.25]**
+
+### Answer
+
+Independent group T intervals
+
+- Therefore a $(1 - \alpha)\times 100\%$ confidence interval for $\mu_y - \mu_x$ is 
+$$
+    \bar Y - \bar X \pm t_{n_x + n_y - 2, 1 - \alpha/2}S_p\left(\frac{1}{n_x} + \frac{1}{n_y}\right)^{1/2}
+$$
+- The pooled variance estimator is $$S_p^2 = \{(n_x - 1) S_x^2 + (n_y - 1) S_y^2\}/(n_x + n_y - 2)$$ 
+- Rewritten for available variables: $$S_p = \sqrt{\{(n_x - 1) var_x + (n_y - 1) var_y\}/(n_x + n_y - 2)}$$
+- Remember this interval is assuming a constant variance across the two groups
+- If there is some doubt, assume a different variance per group, which we will discuss later
+
+```{r}
+n_new <- 10     # size of population for new system
+n_old <- 10
+v_new <- 0.6    # variance for new system
+v_old <- 0.68
+x_new <- 3      # median waiting time for new system
+x_old <- 5
+
+# calculate quantile, 2.5% on each side
+p <- .95 # (0.975) is 95% with 2.5% on both sides of the range
+quantile <- p+(1-p)/2
+
+# calculate pooled standard deviation
+s <- sqrt(((n_new - 1) * v_new + (n_old - 1) * v_old)/(n_new + n_old - 2))
+
+ci <- (x_new-x_old) + c(-1, 1) * qt(quantile, df=n_new+n_old-2) * s * (1/n_new + 1/n_old)^0.5
+round(ci,2)
+
+ci <- (x_new-x_old) + c(-1, 1) * qt(quantile, df=n_new+n_old-2) * s * sqrt(1/n_new + 1/n_old)
+round(ci,2)
+```
+
+## Question 5
+Suppose that you create a 95% T confidence interval. You then create a 90% interval using the same data. What can be said about the 90% interval with respect to the 95% interval?
+
+* It is impossible to tell.
+* The interval will be wider
+* **The interval will be narrower.**
+* The interval will be the same width, but shifted.
+
+### Answer
+Increased certainty results in a wider range, less certainty = narrower range
+
+## Question 6
+To further test the hospital triage system, administrators selected 200 nights and randomly assigned a new triage system to be used on 100 nights and a standard system on the remaining 100 nights. They calculated the nightly median waiting time (MWT) to see a physician. The average MWT for the new system was 4 hours with a standard deviation of 0.5 hours while the average MWT for the old system was 6 hours with a standard deviation of 2 hours. Consider the hypothesis of a decrease in the mean MWT associated with the new treatment. What does the 95% independent group confidence interval with unequal variances suggest vis a vis this hypothesis? (Because there's so many observations per group, just use the Z quantile instead of the T.)
+
+* When subtracting (old - new) the interval is entirely above zero. The new system does not appear to be effective.
+* When subtracting (old - new) the interval contains 0. There is not evidence suggesting that the new system is effective.
+* **When subtracting (old - new) the interval is entirely above zero. The new system appears to be effective.**
+* When subtracting (old - new) the interval contains 0. The new system appears to be effective.
+
+### Answer
+```{r}
+n_new <- 100    # size of population for new system
+n_old <- 100
+s_new <- 0.5    # standard deviation for new system
+s_old <- 2
+x_new <- 4      # median waiting time for new system
+x_old <- 6
+
+# calculate quantile, 2.5% on each side
+p <- .95 # (0.975) is 95% with 2.5% on both sides of the range
+quantile <- p+(1-p)/2
+
+# calculate the variance from the standard deviation (so i can use the same code from Q4, just need to switch the x_new-x_old around and use qnorm instead of qt)
+v_new <- s_new^2
+v_old <- s_old^2
+
+# calculate pooled standard deviation
+s <- sqrt(((n_new - 1) * v_new + (n_old - 1) * v_old)/(n_new + n_old - 2))
+
+# the question asked about old-new
+ci <- (x_old-x_new) + c(-1, 1) * qnorm(quantile) * s * (1/n_new + 1/n_old)^0.5
+round(ci,2)
+
+# also have a look at new-old
+ci <- (x_new-x_old) + c(-1, 1) * qnorm(quantile) * s * (1/n_new + 1/n_old)^0.5
+round(ci,2)
+```
+
+## Question 7
+Suppose that 18 obese subjects were randomized, 9 each, to a new diet pill and a placebo. Subjects body mass indices (BMIs) were measured at a baseline and again after having received the treatment or placebo for four weeks. The average difference from follow-up to the baseline (followup - baseline) was -3 kg/m2 for the treated group and 1 kg/m2 for the placebo group. The corresponding standard deviations of the differences was 1.5 kg/m2 for the treatment group and 1.8 kg/m2 for the placebo group. Does the change in BMI over the four week period appear to differ between the treated and placebo groups? Assuming normality of the underlying data and a common population variance, calculate the relevant 90% t confidence interval. Subtract in the order of (Treated - Placebo) with the smaller (more negative) number first.
+
+* [2.469, 5.531]
+* [-5.531, -2.469]
+* [2.636, 5.364]
+* **[-5.364, -2.636]**
+
+### Answer
+```{r}
+n_treated <- 9    # subjects taking drug
+n_placebo <- 9
+s_treated <- 1.5  # kg/m2 standard deviation
+s_placebo <- 1.8
+x_treated <- -3   # kg/m2 average BMI change
+x_placebo <- 1
+
+# calculate quantile, 2.5% on each side
+p <- .90 # 5% on both sides of the range
+quantile <- p+(1-p)/2
+
+# calculate the variance from the standard deviation
+v_treated <- s_treated^2
+v_placebo <- s_placebo^2
+
+# calculate pooled standard deviation
+s <- sqrt(((n_treated - 1) * v_treated + (n_placebo - 1) * v_placebo)/(n_treated + n_placebo - 2))
+
+ci <- (x_treated-x_placebo) + c(-1, 1) * qt(quantile, df=n_placebo+n_treated-2) * s * (1/n_treated + 1/n_placebo)^0.5
+round(ci,3)
+```
