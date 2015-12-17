@@ -1,0 +1,182 @@
+# Ordinary Least Squared
+
+Find the exercises [here](https://leanpub.com/regmods/read#leanpub-auto-exercises-2) and the YouTube videos [here](https://www.youtube.com/watch?v=HH78kFrT-5k&index=8&list=PLpl-gQkQivXji7JK1OP1qS7zalwUBPrX0).
+
+1.	Install and load the package UsingR and load the father.son data with data(father.son). Get the linear regression fit where the son's height is the outcome and the father's height is the predictor. Give the intercept and the slope, plot the data and overlay the fitted regression line. Watch a video solution.
+
+```{r}
+library(UsingR)
+data(father.son)
+
+# calculate using R function
+fit = lm(sheight ~ fheight, data = father.son) # son's height is outcome, father's height is predictor
+
+# and manually
+y = father.son$sheight
+x = father.son$fheight
+b1 = cor(y,x) * sd(y)/sd(x) # slope
+b0 = mean(y) - b1 * mean(x) # intercept
+
+# compare
+rbind(coef(fit), c(b0, b1))
+
+# overlay the fit
+library(ggplot2)
+g = ggplot(father.son, aes(x=fheight, y=sheight))
+g = g + geom_point() # adds scatter plot
+g = g + geom_smooth(method = lm, se = FALSE, lwd = 2) # add line at fitted regression line (standard error hidden)
+g
+```
+
+2.	Refer to problem 1. Center the father and son variables and refit the model omitting the intercept. Verify that the slope estimate is the same as the linear regression fit from problem 1. Watch a video solution.
+
+```{r}
+# previously calculated fheight coefficient is 0.51409
+summary(fit)
+
+# centre x and y
+xc = x - mean(x)
+yc = y - mean(y)
+
+# calculate the slope coefficient
+sum(xc * yc) / sum(xc^2)
+# can also use lm, -1 removes the intercept
+lm(yc ~ xc - 1)
+
+```
+
+3.	Refer to problem 1. Normalize the father and son data and see that the fitted slope is the correlation. Watch a video solution.
+
+```{r}
+# already fitted y variables
+
+# normalise
+xn = (x - mean(x)) / sd(x)
+yn = (y - mean(y)) / sd(y)
+
+# calculate linear model
+lm(yn ~ xn)
+lm(xn ~ yn) # as it is normalised it doesn't matter which is on which side
+# = 0.5013
+
+cor(xn, yn)
+cor(yn, xn)
+# = 0.5013
+
+# if you normalise your data first (X & y) the fitted slope coefficent will be equal to the correlation
+# formula - slope estimate is the correlation times ratio of standard deviations
+
+```
+
+4.	Go back to the linear regression line from Problem 1. If a father's height was 63 inches, what would you predict the son's height to be? Watch a video solution.
+
+```{r}
+# refit
+fit = lm(sheight ~ fheight, data = father.son) # son's height is outcome, father's height is predictor
+
+# find coefficient, etc
+summary(fit)
+
+# if want to predict with linear model, easy way to is to use predict function
+# function requires a data frame, only want to include parents=63 inches
+predict(fit, newdata = data.frame(fheight = 63))
+# 66.27447
+
+# can also directly use coefficient
+coef(fit)
+b0 = coef(fit)[1]
+b1 = coef(fit)[2]
+b0 + b1 * 63
+# 66.27447
+```
+
+
+5.	Consider a data set where the standard deviation of the outcome variable is double that of the predictor. Also, the variables have a correlation of 0.3. If you fit a linear regression model, what would be the estimate of the slope? Watch a video solution.
+
+Y - outcome
+
+X - predictor
+
+sd(Y) = 2*sd(X) => sd(Y)/sd(X) = 2
+
+cor(X,Y) = 0.3
+
+Slope estimate = Cor(Y,X) * sd(Y)/sd(X)
+
+               = 0.3      * 2
+               
+               = 0.6
+
+6.	Consider the previous problem. The outcome variable has a mean of 1 and the predictor has a mean of 0.5. What would be the intercept? Watch a video solution.
+
+B1 is the slope estimate and calculated in Q5 as 0.6
+
+Intercept (B0) = Ybar - B1 * Xbar 
+
+               = 1    - 0.6 * 0.5
+               
+               = 0.7
+
+7.	True or false, if the predictor variable has mean 0, the estimated intercept from linear regression will be the mean of the outcome? Watch a video solution.
+
+Intercept from linear expression :
+
+  B0hat = Ybar - B1hat * Xbar
+  
+  If the predictor variable has mean 0 then (B1hat * Xbar) is zero
+  
+  and B0hat = Ybar
+  
+  Which means TRUE is the answer
+
+8.	Consider problem 5 again. What would be the estimated slope if the predictor and outcome were reversed? Watch a video solution.
+
+X - outcome
+
+Y - predictor
+
+sd(Y)/sd(X) = 2 => sd(X)/sd(Y) = 1/2
+
+cor(X,Y) = 0.3
+
+Slope estimate = Cor(Y,X) * sd(X)/sd(Y)
+
+               = 0.3      * 1/2
+               
+               = 0.15
+
+# Regression to the mean
+
+Find the exercises [here](https://leanpub.com/regmods/read#leanpub-auto-exercises-3) and the YouTube videos [here](https://youtu.be/rZsnJ0EzVHo).
+
+1.	You have two noisy scales and a bunch of people that you'd like to weigh. You weigh each person on both scales. The correlation was 0.75. If you normalized each set of weights, what would you have to multiply the weight on one scale to get a good estimate of the weight on the other scale? Watch a video solution.
+
+The correlation = sd(y)/sd(x)  "the ratio of the standard deviations"
+
+Multiple weight by 0.75 (note weights have been normalised)
+
+
+2.	Consider the previous problem. Someone's weight was 2 standard deviations above the mean of the group on the first scale. How many standard deviations above the mean would you estimate them to be on the second? Watch a video solution.
+
+Multiple by the slope => 2 * 0.75 = 1.5
+
+
+3.	You ask a collection of husbands and wives to guess how many jellybeans are in a jar. The correlation is 0.2. The standard deviation for the husbands is 10 beans while the standard deviation for wives is 8 beans. Assume that the data were centered so that 0 is the mean for each. The centered guess for a husband was 30 beans (above the mean). What would be your best estimate of the wife's guess? Watch a video solution.
+
+Need to find the regression line, needs to go through 0,0 as data has been normalised.
+
+```{r}
+# Predictor = Husband
+# Outcome = Wife
+# Cor(x,y) = 0.2
+
+# Calculate the correlation/slope
+# => Cor(x,y)*sd(y)/sd(x)
+cor = (0.2) * (8/10)
+cor
+
+# To get the wife's guess (correlation * husband's estimate):
+cor * 30
+
+## The correlation is very low, results in low wife estimate
+```
